@@ -1,4 +1,5 @@
-/* DATABASE Method Outputs */
+# sample statements that are 
+# accepted by MySQL for this database
 USE testdb;
 
 DROP TABLE test;
