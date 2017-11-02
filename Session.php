@@ -8,7 +8,7 @@ purpose:	class def for session class and controller
  -->*/
 
 // included php files
-include 'Node.php';
+include 'User.php';
 include 'Table.php';
 include 'utility.php';
 
@@ -16,11 +16,11 @@ class Session {
 
 	// member vars
 	var $table;
-	var $node;
+	var $user;
 
 	// db credentials
-	var $db_username = "testadmin";
-	var $db_name = "test";
+	var $db_username = "user_admin";
+	var $db_name = "plug_db";
 	var $db_password = "password";
 	var $db_servername = "localhost";
 
@@ -35,33 +35,52 @@ class SessionController extends Session {
 		parent::__construct();
 	}
 
-	public function insert($table,$node) {
-		$name = $table->tableName;
-		$columns = $table->tableColumns;
-		$values = get_object_vars($node);
-
+	public function insert($table,$user) {
 		// make sql query statement
-		$query = "INSERT INTO ". $name . "( ".id_num.", ".username.", ".imageUrl." ) ".
+		$sql = "INSERT INTO ". $table->table_name . " (user_id, group_id, user_login, user_email, user_fname, user_lname, user_phone,user_image_url)  ".
 		"VALUES ( ".
-		$node->id_num.", '".
-		$node->username."','".
-		$node->imageUrl."' );".
+		$user->user_id.", '".
+		$user->group_id."','".
+		$user->user_login."','".
+		$user->user_email."','".
+		$user->user_fname."','".
+		$user->user_lname."','".
+		$user->user_phone."','".
+		$user->user_image_url.
+
+
+		"' );".
 		"\n";
 
-		return $query;
-	}
+		// Create connection
+		$conn = new mysqli($this->db_servername, $this->db_username, $this->db_password, $this->db_name);
+		// Check connection
+		if ($conn->connect_error) {
+		    die("Connection failed: " . $conn->connect_error);
+		}
 
-	public function find($table,$node){
+		if ($conn->query($sql) === TRUE) {
+		    echo "New record created successfully";
+		} else {
+		    echo "Error: " . $sql . "\n" . $conn->error;
+		}
+
+		$conn->close();
+
+		return $sql;
+	}// end insert method
+
+	public function find($table,$user){
 		// find by id_num
-		$key = $node->id_num;
+		$key = $user->id_num;
 
-		$query = "SELECT * FROM ".$table->tableName." WHERE ".id_num." = ".$key.";\n";
+		$query = "SELECT * FROM ".$table->table_name." WHERE ".id_num." = ".$key.";\n";
 		return $query;
 	}
 
-	public function remove($table,$node){
+	public function remove($table,$user){
 		// delete by id_num
-		$query = "DELETE FROM ".$table->tableName." WHERE ".id_num." = ".$node->id_num.";\n";
+		$query = "DELETE FROM ".$table->table_name." WHERE ".id_num." = ".$user->id_num.";\n";
 		return $query;
 	}
 	/**
@@ -95,44 +114,51 @@ class SessionController extends Session {
 		die("Connection closed.".$this->connection."\n");
 	}
 
-	public function toJSON($node){
-		$json = json_encode($node);
+	public function toJSON($user){
+		$json = json_encode($user);
 		return ($json);
 	}
-
-
 
 }// end controller subclass def
 
 
 // Unit Test
 function SessionUnitTest(){
-	$controller 						= new SessionController;
-	$controller->connect();
+	$controller = new SessionController;
+	//$controller->connect();
 	
-	$controller->table 					= new Table;
-	$controller->table->tableName 		= test_input("test");
-	$controller->table->tableColumns 	= ["id_num","username","imageUrl"];
+	$table = new Table;
+	$table->table_name 		= "user_table";
+	$table->tableColumns 	= ["id_num","username","imageUrl"];
+	
+	$user = new User;
+	$vars = array(
+		"user_id" => 7,
+		"group_id" => 3,
+		"user_login" => "fbar1999",
+		"user_email" => "fbar@yahoo.com",
+		"user_fname" => "foo",
+		"user_lname" => "bar",
+		"user_phone" => 1890453678,
+		"user_image_url" => "http://www.imgur.com/"
+	);
+	//var_dump($user);
+	
+	$user->set_object_vars($user,$vars);
+	echo $controller->insert($table, $user);
 
-	$controller->node = new Node;
-	$controller->node->id_num 			= test_input(1234567890);
-	$controller->node->username 		= test_input("fbar100");
-	$controller->node->imageUrl 		= test_input("http://faceflickr.com");
+	//echo $controller->find($controller->table, $user);
 
-	echo $controller->insert($controller->table, $controller->node);
+	//echo $controller->remove($controller->table, $user);
 
-	echo $controller->find($controller->table, $controller->node);
-
-	echo $controller->remove($controller->table, $controller->node);
-
-	echo $controller->toJSON($controller->node);
-	var_dump($controller);
-	$controller->disconnect();
+	//echo $controller->toJSON($controller->user);
+	//var_dump($controller);
+	//$controller->disconnect();
 
 }// end unit test def
 
 
 //echo json_encode($outp);
-//SessionUnitTest();
+SessionUnitTest();
 
 ?>

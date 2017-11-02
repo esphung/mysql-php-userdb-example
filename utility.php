@@ -15,5 +15,16 @@ function test_input($data) {
   return $data;
 } // end test_input() function def
 
+function set_object_vars($object, array $vars) {
+	var_dump($vars);
+
+	$has = get_object_vars($object);
+	foreach ($has as $user_id => $oldValue) {
+		$object->$user_id = isset($vars[$user_id]) ? $vars[$user_id] : NULL;
+	}
+	var_dump($object);
+
+}// end set obj vars
+
 
 ?>

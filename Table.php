@@ -7,9 +7,11 @@ purpose:	talbe class def and controller def for plug backend api
  -->*/
 class Table {
 	// member variables
-	var $tableName;
-	var $tableColumns;// List<String>
+	public $table_name;
+	public $table_columns;// List<String>
 	public function __construct() {
+		$this->table_name = table_name;
+		$this->table_columns = table_columns;
 	}
 }
 
