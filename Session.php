@@ -10,7 +10,7 @@ purpose:	class def for session class and controller
 // included php files
 include 'User.php';
 include 'Table.php';
-include 'utility.php';
+include 'Utility.php';
 
 class Session {
 
@@ -24,13 +24,11 @@ class Session {
 	var $db_password = "password";
 	var $db_servername = "localhost";
 
-	public function __construct() {
-	}
-	public function destruct(){
-	}
+	public function __construct() {}
+	public function destruct(){}
 }// end base class def
 
-class SessionController extends Session {
+class Controller extends Session {
 	public function __construct() {
 		parent::__construct();
 	}
@@ -47,8 +45,6 @@ class SessionController extends Session {
 		$user->user_lname."','".
 		$user->user_phone."','".
 		$user->user_image_url.
-
-
 		"' );".
 		"\n";
 
@@ -60,7 +56,7 @@ class SessionController extends Session {
 		}
 
 		if ($conn->query($sql) === TRUE) {
-		    echo "New record created successfully";
+		    echo "New record created successfully\n";
 		} else {
 		    echo "Error: " . $sql . "\n" . $conn->error;
 		}
@@ -72,16 +68,55 @@ class SessionController extends Session {
 
 	public function find($table,$user){
 		// find by id_num
-		$key = $user->id_num;
+		$key = $user->user_id;
 
-		$query = "SELECT * FROM ".$table->table_name." WHERE ".id_num." = ".$key.";\n";
-		return $query;
+		$sql = "SELECT * FROM ".$table->table_name." WHERE ".user_id." = ".$key.";\n";
+
+		// Create connection
+		$conn = new mysqli($this->db_servername, $this->db_username, $this->db_password, $this->db_name);
+		// Check connection
+		if ($conn->connect_error) {
+		    die("Connection failed: " . $conn->connect_error);
+		} 
+
+		$result = $conn->query($sql);
+
+		if ($result->num_rows > 0) {
+			echo "Record found!","\n";
+			// make new object
+			$obj = new User;
+		    while($row = $result->fetch_assoc()) {
+		        $obj = $row;
+		    }
+		} else {
+		    echo "Record not found!\n";
+		    // return current user object?
+		    return;
+		}
+		$conn->close();
+		return $obj;
 	}
 
 	public function remove($table,$user){
 		// delete by id_num
-		$query = "DELETE FROM ".$table->table_name." WHERE ".id_num." = ".$user->id_num.";\n";
-		return $query;
+
+		$sql = "DELETE FROM ".$table->table_name." WHERE ".user_id." = ".$user->user_id.";\n";
+
+		// Create connection
+		$conn = new mysqli($this->db_servername, $this->db_username, $this->db_password, $this->db_name);
+		// Check connection
+		if ($conn->connect_error) {
+		    die("Connection failed: " . $conn->connect_error);
+		}
+
+		if ($conn->query($sql) === TRUE) {
+		    echo "Record deleted successfully\n";
+		} else {
+		    echo "Error deleting record: " . $conn->error;
+		}
+
+
+		return $sql;
 	}
 	/**
 	 * @param type Table
@@ -96,40 +131,15 @@ class SessionController extends Session {
 	public function getTable(){
 	    return $this->table;
 	}
-
-	// open connection to server
-	public function connect(){
-		// Create connection
-		$conn = new mysqli($this->db_servername, $this->db_username, $this->db_password);
-
-		// Check connection
-		if ($conn->connect_error) {
-		    die("Connection failed: " . $conn->connect_error);
-		} 
-		echo "Connected successfully\n";
-	}
-
-	// kill connection to server
-	public function disconnect(){
-		die("Connection closed.".$this->connection."\n");
-	}
-
-	public function toJSON($user){
-		$json = json_encode($user);
-		return ($json);
-	}
-
 }// end controller subclass def
+
 
 
 // Unit Test
 function SessionUnitTest(){
-	$controller = new SessionController;
-	//$controller->connect();
-	
+	$controller = new Controller;
 	$table = new Table;
 	$table->table_name 		= "user_table";
-	$table->tableColumns 	= ["id_num","username","imageUrl"];
 	
 	$user = new User;
 	$vars = array(
@@ -142,18 +152,12 @@ function SessionUnitTest(){
 		"user_phone" => 1890453678,
 		"user_image_url" => "http://www.imgur.com/"
 	);
-	//var_dump($user);
-	
+
 	$user->set_object_vars($user,$vars);
-	echo $controller->insert($table, $user);
-
-	//echo $controller->find($controller->table, $user);
-
-	//echo $controller->remove($controller->table, $user);
-
-	//echo $controller->toJSON($controller->user);
-	//var_dump($controller);
-	//$controller->disconnect();
+	$controller->insert($table, $user);
+	$controller->find($table, $user);
+	$controller->remove($table, $user);
+	
 
 }// end unit test def
 
