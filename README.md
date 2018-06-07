@@ -1,4 +1,4 @@
-Plug Backend API
+PHP MySQL User Database Basic Example
 ================
 
 by: eric phung
